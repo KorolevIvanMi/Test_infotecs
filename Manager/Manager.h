@@ -26,12 +26,11 @@ namespace manager {
 
         // основные методы класса
         bool Write(std::string, Level);
-        std::vector<std::string> Read();
-        void ReadLastN(...);
+        std::vector<Message> Read();
 
         // Вспомогательные методы
         void ChangeDefaultLevel(Level);
-        std::string ConvertRow(std::string , Level ); 
+        std::string ConvertRow(std::string , Level  ); 
         bool WriteToJournal(std::string);
         Level GetDefaultLevel();
 

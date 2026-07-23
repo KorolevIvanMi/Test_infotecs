@@ -19,7 +19,7 @@ manager::Manager::Manager(std::string journalName, manager::Level defaultLevel):
 // Превращает текст сообщения и уровень важности в строку для записи в журнал + добавляет дату записи
 // также проверяет соотвествие уровня задач
 // возврат пустой строки нужен для того, чтобы при реализации в приложении можно было отследить некорректный уровень
-std::string manager::Manager::ConvertRow(std::string text,manager::Level level){
+std::string manager::Manager::ConvertRow(std::string text,manager::Level level ){
     if (static_cast<int>(level) <= static_cast<int>(defaultLevel)) { 
         // необходимые переменные
         std::string result = " ";
@@ -89,16 +89,19 @@ manager::Message manager::Manager::parseData(std::string line){
     while (stream_line.get(chr)){
         if(chr == '|'){
             stick_counter ++;
-            continue;
+            if (stick_counter <= 2){ //чтобы | в середине сообщения не пропускались
+                continue;
+            };
         }
-        if (stick_counter == 0){
-            lvl += chr;
-        }
-        if (stick_counter == 1){
-            data += chr;
-        }
-        if (stick_counter == 2){
-            message += chr;
+        switch (stick_counter){
+            case 0:
+                lvl+=chr;
+                break;
+            case 1:
+                data += chr;
+                break;
+            default:
+                message+=chr;
         }
     }
     res.lvl = lvl[1]; // так как первый символ будет пробелом
@@ -108,6 +111,17 @@ manager::Message manager::Manager::parseData(std::string line){
     return res;
 }
 
-std::vector<std::string> manager::Manager::Read(){
+std::vector<manager::Message> manager::Manager::Read(){
+    std::vector<manager::Message> result;
+
+    std::string journal_name = journalName + ".txt"; 
+    std::ifstream file(journal_name);
+    std::string line;
+    if(file.is_open()){
+        while(std::getline(file, line)){
+            result.push_back(parseData(line));
+        }
+    }
+    return result;
 
 }
