@@ -5,7 +5,7 @@
 #include <iomanip>
 #include <string>
 #include <sstream>
-
+#include <iostream>
 // конструктор по умолчанию
 manager::Manager::Manager(){
     this->defaultLevel = manager::Level::UNIMPORTANT;
@@ -76,3 +76,25 @@ manager::Level manager::Manager::GetDefaultLevel(){
     return defaultLevel;
 }
 
+// метод парсит строку из журнала, доставая от туда дату и сообщение. 
+// он формирует новую строку из этого и возвращает в основной код
+std::string manager::Manager::parseData(std::string line){
+    int stick_counter = 0;
+    std::string data = "", message = "";
+
+    std::stringstream stream_line(line);
+    char chr;
+    while (stream_line.get(chr)){
+        if(chr == '|'){
+            stick_counter ++;
+            continue;
+        }
+        if (stick_counter == 1){
+            data += chr;
+        }
+        if (stick_counter == 2){
+            message += chr;
+        }
+    }
+    return data +" :::: "+ message;
+}

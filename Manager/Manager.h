@@ -28,6 +28,7 @@ namespace manager {
         bool WriteToJournal(std::string);
         Level GetDefaultLevel();
 
+        
     private:
 
         //  Поля класса
