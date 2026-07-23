@@ -26,7 +26,8 @@ namespace manager {
         void ChangeDefaultLevel(Level);
         std::string ConvertRow(std::string , Level ); 
         bool WriteToJournal(std::string);
-        
+        Level GetDefaultLevel();
+
     private:
 
         //  Поля класса

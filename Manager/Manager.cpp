@@ -3,7 +3,6 @@
 #include <ctime>
 #include <fstream>
 #include <iomanip>
-#include <time.h>
 #include <string>
 #include <sstream>
 
@@ -20,7 +19,7 @@ manager::Manager::Manager(std::string journalName, manager::Level defaultLevel):
 // также проверяет соотвествие уровня задач
 // возврат пустой строки нужен для того, чтобы при реализации в приложении можно было отследить некорректный уровень
 std::string manager::Manager::ConvertRow(std::string text,manager::Level level){
-    if (static_cast<int>(level) < static_cast<int>(defaultLevel)) { 
+    if (static_cast<int>(level) <= static_cast<int>(defaultLevel)) { 
         // необходимые переменные
         std::string result = " ";
         time_t t= time(NULL);
@@ -67,6 +66,14 @@ bool manager::Manager::Write(std::string text,manager::Level level){
     return true;
 }
 
+// позволяет менять уровень задачи по умолчанию
 void manager::Manager::ChangeDefaultLevel(manager::Level newLvl){
     this->defaultLevel = newLvl;
 }
+
+// позволяет получить текущий уровень задач по умолчанию
+manager::Level manager::Manager::GetDefaultLevel(){
+    return defaultLevel;
+}
+
+
