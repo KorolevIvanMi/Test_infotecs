@@ -20,11 +20,11 @@ manager::Manager::Manager(std::string journalName, manager::Level defaultLevel):
 // также проверяет соотвествие уровня задач
 // возврат пустой строки нужен для того, чтобы при реализации в приложении можно было отследить некорректный уровень
 std::string manager::Manager::ConvertRow(std::string& text,manager::Level level ) const noexcept{
-    if (static_cast<int>(level) <= static_cast<int>(defaultLevel)) { 
+    if (int(level) <= int(defaultLevel)) { 
         // необходимые переменные
         std::string result = " ";
         time_t t= time(NULL);
-        int lvl = static_cast<int>(level); // получение значения из перечисления, так как хранить 1 символ лучше чем несколько, то храним номер важности
+        int lvl = int(level); // получение значения из перечисления, так как хранить 1 символ лучше чем несколько, то храним номер важности
 
         // строка-поток для перевода времени в строку
         std::stringstream ss;
