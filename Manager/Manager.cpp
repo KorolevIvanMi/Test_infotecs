@@ -93,6 +93,7 @@ manager::Message manager::Manager::parseData(std::string& line)const noexcept{
                 continue;
             };
         }
+        // раззделение на что куда писать 
         switch (stick_counter){
             case 0:
                 lvl+=chr;
@@ -111,12 +112,13 @@ manager::Message manager::Manager::parseData(std::string& line)const noexcept{
     return res;
 }
 
+// возвращает вектор структур Message. Считывает по строке из файла и заносит структуру, получаемую из parseData в результирующий вектор
 std::vector<manager::Message> manager::Manager::Read()const noexcept{
     std::vector<manager::Message> result;
 
     std::string journal_name = journalName + ".txt"; 
     std::ifstream file(journal_name);
-    std::string line;
+    std::string line; // сюда считываем строку
     if(file.is_open()){
         while(std::getline(file, line)){
             result.push_back(parseData(line));
