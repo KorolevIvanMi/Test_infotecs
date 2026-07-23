@@ -31,9 +31,9 @@ std::string manager::Manager::ConvertRow(std::string text,manager::Level level){
         
         // формирование и возврат строки
         result.append(std::to_string(lvl));
-        result.append(" ");
+        result.append("|");
         result.append(ss.str());
-        result.append(" ");
+        result.append("|");
         result.append(text);
         return result;
     }
@@ -75,5 +75,4 @@ void manager::Manager::ChangeDefaultLevel(manager::Level newLvl){
 manager::Level manager::Manager::GetDefaultLevel(){
     return defaultLevel;
 }
-
 

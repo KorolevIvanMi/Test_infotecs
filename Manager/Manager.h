@@ -35,6 +35,6 @@ namespace manager {
         manager::Level defaultLevel;
 
         // Скрытые технические методы
-        void parseData();
+        std::string parseData(std::string);
     };
 }
