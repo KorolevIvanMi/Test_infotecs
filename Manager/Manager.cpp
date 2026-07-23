@@ -1,6 +1,7 @@
 #include "Manager.h"
 
 #include <ctime>
+#include <fstream>
 #include <iomanip>
 #include <time.h>
 #include <string>
@@ -15,18 +16,35 @@ manager::Manager::Manager(){
 // конструктор с параметрами
 manager::Manager::Manager(std::string journalName, manager::Level defaultLevel): journalName{journalName} , defaultLevel{defaultLevel}{}
 
+// Превращает текст сообщения и уровень важности в строку для записи в журнал + добавляет дату записи
 std::string manager::Manager::convertRow(std::string text,manager::Level level){
+    // необходимые переменные
     std::string result = " ";
     time_t t= time(NULL);
-    int lvl = static_cast<int>(level);
+    int lvl = static_cast<int>(level); // получение значения из перечисления, так как хранить 1 символ лучше чем несколько, то храним номер важности
 
+    // строка-поток для перевода времени в строку
     std::stringstream ss;
     ss << std::put_time(std::localtime(&t), "%Y-%m-%d-%H:%M:%S");
     
+    // формирование и возврат строки
     result.append(std::to_string(lvl));
     result.append(" ");
     result.append(ss.str());
     result.append(" ");
     result.append(text);
     return result;
+}
+
+// записывает переданную строку в файл . Возвращает true есил всё получилось и flase, если возникли проблемы
+bool manager::Manager::writeToJournal(std::string text){
+    std::string journal_name = journalName + ".txt"; // добавляем к названию журнала расширение файла
+    std::ofstream journal(journal_name, std::ios::app | std::ios::ate); // открываем файл для чтения и переводим указатель в конец файла
+    if (!journal.is_open()){
+        return false; //если файл не открывается, то возвращаем неудачу
+    }
+    journal << text << "\n"; // записывает данные в файл
+    journal.close(); // закрываем файл
+
+    return true;
 }

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <fstream>
 
 namespace manager {
     enum class Level{
@@ -24,7 +25,7 @@ namespace manager {
         // Вспомогательные методы
         void ChangeDefaultLevel();
         
-
+        
     private:
 
         //  Поля класса
@@ -33,7 +34,7 @@ namespace manager {
 
         // Скрытые технические методы
         std::string convertRow(std::string , Level );
-        std::string writeToJournal();
+        bool writeToJournal(std::string);
         void parseData();
     };
 }
