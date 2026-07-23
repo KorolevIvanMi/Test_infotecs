@@ -18,13 +18,14 @@ namespace manager {
         Manager(std::string, manager::Level );
 
         // основные методы класса
-        void Write(...);
+        bool Write(std::string, Level);
         void Read(...);
         void ReadLastn(...);
 
         // Вспомогательные методы
         void ChangeDefaultLevel();
-        
+        std::string ConvertRow(std::string , Level ); 
+        bool WriteToJournal(std::string);
         
     private:
 
@@ -33,8 +34,7 @@ namespace manager {
         manager::Level defaultLevel;
 
         // Скрытые технические методы
-        std::string convertRow(std::string , Level );
-        bool writeToJournal(std::string);
+        
         void parseData();
     };
 }

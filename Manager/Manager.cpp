@@ -17,7 +17,7 @@ manager::Manager::Manager(){
 manager::Manager::Manager(std::string journalName, manager::Level defaultLevel): journalName{journalName} , defaultLevel{defaultLevel}{}
 
 // Превращает текст сообщения и уровень важности в строку для записи в журнал + добавляет дату записи
-std::string manager::Manager::convertRow(std::string text,manager::Level level){
+std::string manager::Manager::ConvertRow(std::string text,manager::Level level){
     // необходимые переменные
     std::string result = " ";
     time_t t= time(NULL);
@@ -37,7 +37,7 @@ std::string manager::Manager::convertRow(std::string text,manager::Level level){
 }
 
 // записывает переданную строку в файл . Возвращает true есил всё получилось и flase, если возникли проблемы
-bool manager::Manager::writeToJournal(std::string text){
+bool manager::Manager::WriteToJournal(std::string text){
     std::string journal_name = journalName + ".txt"; // добавляем к названию журнала расширение файла
     std::ofstream journal(journal_name, std::ios::app | std::ios::ate); // открываем файл для чтения и переводим указатель в конец файла
     if (!journal.is_open()){
@@ -46,5 +46,14 @@ bool manager::Manager::writeToJournal(std::string text){
     journal << text << "\n"; // записывает данные в файл
     journal.close(); // закрываем файл
 
+    return true;
+}
+
+// обрабатывает и записывает данные в файл . По сути является объединением ConvertRow и WriteToJournal
+// нужен для тех случаев, когда разработчику хочется вызвать один метод вместо двух. 
+// только в таком случае при многопоточной работе уже внутри приложения нельзя пустить запись в файл под mutex
+bool manager::Manager::Write(std::string text,manager::Level level){
+    std::string line = ConvertRow(text,  level);
+    if (!WriteToJournal(line)) return false;
     return true;
 }
