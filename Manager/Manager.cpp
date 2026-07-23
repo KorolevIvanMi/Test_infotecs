@@ -19,7 +19,7 @@ manager::Manager::Manager(std::string journalName, manager::Level defaultLevel):
 // Превращает текст сообщения и уровень важности в строку для записи в журнал + добавляет дату записи
 // также проверяет соотвествие уровня задач
 // возврат пустой строки нужен для того, чтобы при реализации в приложении можно было отследить некорректный уровень
-std::string manager::Manager::ConvertRow(std::string text,manager::Level level ){
+std::string manager::Manager::ConvertRow(std::string& text,manager::Level level ) const noexcept{
     if (static_cast<int>(level) <= static_cast<int>(defaultLevel)) { 
         // необходимые переменные
         std::string result = " ";
@@ -42,7 +42,7 @@ std::string manager::Manager::ConvertRow(std::string text,manager::Level level )
 }
 
 // записывает переданную строку в файл . Возвращает true есил всё получилось и flase, если возникли проблемы
-bool manager::Manager::WriteToJournal(std::string text){
+bool manager::Manager::WriteToJournal(std::string& text)const noexcept{
     std::string journal_name = journalName + ".txt"; // добавляем к названию журнала расширение файла
     std::ofstream journal(journal_name, std::ios::app | std::ios::ate); // открываем файл для чтения и переводим указатель в конец файла
     if (!journal.is_open()){
@@ -58,7 +58,7 @@ bool manager::Manager::WriteToJournal(std::string text){
 // нужен для тех случаев, когда разработчику хочется вызвать один метод вместо двух. 
 // только в таком случае при многопоточной работе уже внутри приложения нельзя пустить запись в файл под mutex и если и пускать, то и обработку текста сообщения
 // так что в зависимости от требования приложения можно использовать или отдельную реализацию или объединнную
-bool manager::Manager::Write(std::string text,manager::Level level){
+bool manager::Manager::Write(std::string& text,manager::Level level)noexcept{
     std::string line = ConvertRow(text,  level);
     if (line == ""){
         return false;
@@ -68,17 +68,17 @@ bool manager::Manager::Write(std::string text,manager::Level level){
 }
 
 // позволяет менять уровень задачи по умолчанию
-void manager::Manager::ChangeDefaultLevel(manager::Level newLvl){
+void manager::Manager::ChangeDefaultLevel(manager::Level newLvl)noexcept{
     this->defaultLevel = newLvl;
 }
 
 // позволяет получить текущий уровень задач по умолчанию
-manager::Level manager::Manager::GetDefaultLevel(){
+manager::Level manager::Manager::GetDefaultLevel()const noexcept{
     return defaultLevel;
 }
 
 // метод парсит строку из журнала, доставая от туда дату и сообщение. 
-manager::Message manager::Manager::parseData(std::string line){
+manager::Message manager::Manager::parseData(std::string& line)const noexcept{
     Message res; // сюда складываются данные добытые из линии
 
     int stick_counter = 0;
@@ -111,7 +111,7 @@ manager::Message manager::Manager::parseData(std::string line){
     return res;
 }
 
-std::vector<manager::Message> manager::Manager::Read(){
+std::vector<manager::Message> manager::Manager::Read()const noexcept{
     std::vector<manager::Message> result;
 
     std::string journal_name = journalName + ".txt"; 

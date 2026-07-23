@@ -25,14 +25,14 @@ namespace manager {
         Manager(std::string, manager::Level );
 
         // основные методы класса
-        bool Write(std::string, Level);
-        std::vector<Message> Read();
+        bool Write(std::string&, Level) noexcept;
+        [[nodiscard]] std::vector<Message> Read() const noexcept;
 
         // Вспомогательные методы
-        void ChangeDefaultLevel(Level);
-        std::string ConvertRow(std::string , Level  ); 
-        bool WriteToJournal(std::string);
-        Level GetDefaultLevel();
+        void ChangeDefaultLevel(Level) noexcept;
+        [[nodiscard]] std::string ConvertRow(std::string& , Level) const noexcept; 
+        bool WriteToJournal(std::string&)const noexcept;
+        [[nodiscard]] Level GetDefaultLevel()const noexcept;
 
         
     private:
@@ -42,6 +42,6 @@ namespace manager {
         manager::Level defaultLevel;
 
         // Скрытые технические методы
-        Message parseData(std::string);
+        Message parseData(std::string&) const noexcept;
     };
 }
