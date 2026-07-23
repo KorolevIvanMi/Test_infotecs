@@ -6,6 +6,7 @@
 #include <string>
 #include <sstream>
 #include <iostream>
+#include <vector>
 // конструктор по умолчанию
 manager::Manager::Manager(){
     this->defaultLevel = manager::Level::UNIMPORTANT;
@@ -77,10 +78,11 @@ manager::Level manager::Manager::GetDefaultLevel(){
 }
 
 // метод парсит строку из журнала, доставая от туда дату и сообщение. 
-// он формирует новую строку из этого и возвращает в основной код
-std::string manager::Manager::parseData(std::string line){
+manager::Message manager::Manager::parseData(std::string line){
+    Message res; // сюда складываются данные добытые из линии
+
     int stick_counter = 0;
-    std::string data = "", message = "";
+    std::string lvl = "", data = "", message = "";
 
     std::stringstream stream_line(line);
     char chr;
@@ -89,6 +91,9 @@ std::string manager::Manager::parseData(std::string line){
             stick_counter ++;
             continue;
         }
+        if (stick_counter == 0){
+            lvl += chr;
+        }
         if (stick_counter == 1){
             data += chr;
         }
@@ -96,5 +101,13 @@ std::string manager::Manager::parseData(std::string line){
             message += chr;
         }
     }
-    return data +" :::: "+ message;
+    res.lvl = lvl[1]; // так как первый символ будет пробелом
+    res.data = data;
+    res.message = message;
+
+    return res;
+}
+
+std::vector<std::string> manager::Manager::Read(){
+
 }

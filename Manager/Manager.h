@@ -2,12 +2,19 @@
 
 #include <string>
 #include <fstream>
+#include <vector>
 
 namespace manager {
     enum class Level{
         IMPORTANT = 1,
         MEDIUM = 2,
         UNIMPORTANT = 3
+    };
+
+    struct Message{
+        std::string lvl;
+        std::string data;
+        std::string message;
     };
 
     class Manager{
@@ -19,7 +26,7 @@ namespace manager {
 
         // основные методы класса
         bool Write(std::string, Level);
-        void Read(...);
+        std::vector<std::string> Read();
         void ReadLastN(...);
 
         // Вспомогательные методы
@@ -36,6 +43,6 @@ namespace manager {
         manager::Level defaultLevel;
 
         // Скрытые технические методы
-        std::string parseData(std::string);
+        Message parseData(std::string);
     };
 }
