@@ -10,14 +10,11 @@ namespace manager {
     };
 
     class Manager{
-        public:
+    public:
 
         //  конструкторы 
         Manager();
-        Manager(...);
-
-        // деструктор
-        ~Manager();
+        Manager(std::string, manager::Level );
 
         // основные методы класса
         void Write(...);
@@ -27,7 +24,7 @@ namespace manager {
         // Вспомогательные методы
         void ChangeDefaultLevel();
         
-        private:
+    private:
 
         //  Поля класса
         std::string journalName;
@@ -38,6 +35,4 @@ namespace manager {
         std::string WriteToJournal();
         void ParseData();
     };
-
-
 }
