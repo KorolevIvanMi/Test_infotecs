@@ -24,6 +24,7 @@ namespace manager {
         // Вспомогательные методы
         void ChangeDefaultLevel();
         
+
     private:
 
         //  Поля класса
@@ -31,8 +32,8 @@ namespace manager {
         manager::Level defaultLevel;
 
         // Скрытые технические методы
-        std::string ConvertRow();
-        std::string WriteToJournal();
-        void ParseData();
+        std::string convertRow(std::string , Level );
+        std::string writeToJournal();
+        void parseData();
     };
 }
