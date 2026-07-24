@@ -93,7 +93,7 @@ manager::Message manager::Manager::parseData(std::string& line)const noexcept{
                 continue;
             };
         }
-        // раззделение на что куда писать 
+        // разделение на что куда писать 
         switch (stick_counter){
             case 0:
                 lvl+=chr;

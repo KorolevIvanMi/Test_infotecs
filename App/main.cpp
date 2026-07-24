@@ -2,13 +2,16 @@
 #include <iostream>
 #include <limits>
 
-void ShowLevel(int i){
-    switch (i){
-        case 1 : std::cout << "IMPORTANT\n"; break;
-        case 2 : std::cout << "MEDIUM\n"; break;
-        case 3 : std::cout << "UNIMPORTANT\n"; break;
-    }
-}
+// Выводит уровень важности задачи по его номеру
+void ShowLevel(int i);
+
+void SetLevel();
+
+void ShowMessages();
+
+void WriteMessage();
+
+void ParseArgs();
 
 int main(int args, char* argv[]){
     manager::Manager mng("book", manager::Level::UNIMPORTANT) ; // менеджер
@@ -47,4 +50,12 @@ int main(int args, char* argv[]){
     }while(!flag);
     // тут дожидаться конца потока
 
+}
+
+void ShowLevel(int i){
+    switch (i){
+        case 1 : std::cout << "IMPORTANT\n"; break;
+        case 2 : std::cout << "MEDIUM\n"; break;
+        case 3 : std::cout << "UNIMPORTANT\n"; break;
+    }
 }
