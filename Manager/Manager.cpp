@@ -14,11 +14,13 @@ manager::Manager::Manager(){
 }
 
 // конструктор с параметрами
+// принимает имя журнала и значение уровня важности, которое будет использоваться по умолчанию
 manager::Manager::Manager(std::string journalName, manager::Level defaultLevel): journalName{journalName} , defaultLevel{defaultLevel}{}
 
 // Превращает текст сообщения и уровень важности в строку для записи в журнал + добавляет дату записи
 // также проверяет соотвествие уровня задач
 // возврат пустой строки нужен для того, чтобы при реализации в приложении можно было отследить некорректный уровень
+// Принимает строку и уровень важности, возвращает либо сформированную строку, либо пустуюы
 std::string manager::Manager::ConvertRow(std::string& text,manager::Level level ) const noexcept{
     if (int(level) <= int(defaultLevel)) { 
         // необходимые переменные
@@ -42,6 +44,7 @@ std::string manager::Manager::ConvertRow(std::string& text,manager::Level level 
 }
 
 // записывает переданную строку в файл . Возвращает true есил всё получилось и flase, если возникли проблемы
+// Принимает строку для записи
 bool manager::Manager::WriteToJournal(std::string& text)const noexcept{
     std::string journal_name = journalName + ".txt"; // добавляем к названию журнала расширение файла
     std::ofstream journal(journal_name, std::ios::app | std::ios::ate); // открываем файл для чтения и переводим указатель в конец файла
@@ -58,6 +61,7 @@ bool manager::Manager::WriteToJournal(std::string& text)const noexcept{
 // нужен для тех случаев, когда разработчику хочется вызвать один метод вместо двух. 
 // только в таком случае при многопоточной работе уже внутри приложения нельзя пустить запись в файл под mutex и если и пускать, то и обработку текста сообщения
 // так что в зависимости от требования приложения можно использовать или отдельную реализацию или объединнную
+// ПРиинимает сообзение и уровень важности
 bool manager::Manager::Write(std::string& text,manager::Level level)noexcept{
     std::string line = ConvertRow(text,  level);
     if (line == ""){
@@ -68,6 +72,7 @@ bool manager::Manager::Write(std::string& text,manager::Level level)noexcept{
 }
 
 // позволяет менять уровень задачи по умолчанию
+// Принимает уровень важности
 void manager::Manager::ChangeDefaultLevel(manager::Level newLvl)noexcept{
     this->defaultLevel = newLvl;
 }
@@ -78,6 +83,7 @@ manager::Level manager::Manager::GetDefaultLevel()const noexcept{
 }
 
 // метод парсит строку из журнала, доставая от туда дату и сообщение. 
+// Принимает строку на вход и возвращает структуру Message
 manager::Message manager::Manager::parseData(std::string& line)const noexcept{
     Message res; // сюда складываются данные добытые из линии
 
