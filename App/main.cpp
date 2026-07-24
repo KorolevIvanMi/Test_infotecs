@@ -1,6 +1,8 @@
 #include "../Manager/Manager.h"
+#include <cstring>
 #include <iostream>
 #include <limits>
+#include <stdexcept>
 #include <string>
 #include <thread>
 #include <mutex>
@@ -17,12 +19,23 @@ void ShowMessages(manager::Manager mng);
 // записывает сообщение в журнал
 void WriteMessage(manager::Manager mng, std::string message, manager::Level lvl);
 // разбирает параметры, переданные при старте приложения
-void ParseArgs();
+void ParseArgs(int args, char* argv[], std::string&, int&);
+
+// Очистка журнала
+void CleanJournal(std::string);
+// Вывод сообщений определённого уровня важности
+void ShowSortedMessages(int);
+
 // функция для выбора уровня важности
 manager::Level choseLevel(manager::Manager mng);
 
+
+
 int main(int args, char* argv[]){
-    manager::Manager mng("journal", manager::Level::UNIMPORTANT) ; // менеджер
+    std::string journal_name;
+    int base_lvl;
+    ParseArgs(args, argv, journal_name, base_lvl);
+    manager::Manager mng(journal_name, manager::Level(base_lvl)) ; // менеджер
     std::thread writer; //поток для отправки сообщений в журнал
 
     bool flag = false; // флаг для окончаиня работы программы
@@ -143,7 +156,6 @@ manager::Level choseLevel(manager::Manager mng){
     return lvl;
 }
 
-
 void WriteMessage(manager::Manager mng, std::string message, manager::Level lvl){
     std::string res_message = mng.ConvertRow(message, lvl);
     // если возвращается пустая строка, т.е. добавляется задача с уровнем важности меньше чем заданный по умолчанию, то программа дальше не идет
@@ -151,11 +163,41 @@ void WriteMessage(manager::Manager mng, std::string message, manager::Level lvl)
         std::cout << "Попытка добавить задачу, важность котороой меньше заданной по умолчанию\n";
         return;
     }
-    std::unique_lock<std::mutex> locker(mu);
+    std::unique_lock<std::mutex> locker(mu); //блокируем запись к файлу, чтобы другие потоки не могли читать и писать в файл
     bool flag = mng.WriteToJournal(res_message);
     locker.unlock();
 
     if (flag == false){
         std::cout << "Попытка записи в файл не удалась";
+    }
+}
+
+void ParseArgs(int args, char *argv[], std::string& journal_name, int& base_lvl){
+    if (args == 1){
+        throw std::runtime_error("Неверные входные параметры !! введите --help для просмотра информации");
+    }
+    for(int i = 1; i < args; i++ ){
+        if (std::strcmp(argv[i], "-jn") == 0 || std::strcmp(argv[i], "--journalname") == 0){
+            if(i != args-1){
+                journal_name = argv[i+1];
+                i++;
+            }
+        }
+        else if (std::strcmp(argv[i], "-dl") == 0 || std::strcmp(argv[i], "--defaultlevel") == 0){
+            if(i != args-1){
+                base_lvl = std::stoi(argv[i+1]);
+                i++;
+            }
+        }
+        else if (std::strcmp(argv[i], "-h") == 0 || std::strcmp(argv[i], "--help") == 0){
+            std::cout << "Использование: ./main -jn <name> -dl <1-3>\n";
+            std::cout << "  -jn, --journalname <name>  Имя журнала\n";
+            std::cout << "  -dl, --defaultlevel <1-3>  Уровень важности\n";
+            std::cout << "  -h, --help                 Показать эту справку\n";
+            exit(0);
+        }
+        else{
+            throw std::runtime_error("Неверные входные параметры !! введите --help для просмотра информации");
+        }
     }
 }
