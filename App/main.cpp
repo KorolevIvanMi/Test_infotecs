@@ -1,6 +1,7 @@
 #include "../Manager/Manager.h"
 #include <iostream>
 #include <limits>
+#include <string>
 #include <thread>
 #include <mutex>
 
@@ -12,14 +13,13 @@ void ShowLevel(int i);
 // устанавливает новый уровень важности задач по умолчанию
 void SetLevel(manager::Manager& mng);
 // выводит все сообщения из журнала
-void ShowMessages(manager::Manager& mng);
+void ShowMessages(manager::Manager mng);
 // записывает сообщение в журнал
-bool WriteMessage(manager::Manager& mng, std::string message, manager::Level lvl);
+void WriteMessage(manager::Manager mng, std::string message, manager::Level lvl);
 // разбирает параметры, переданные при старте приложения
 void ParseArgs();
-
 // функция для выбора уровня важности
-manager::Level choseLevel(manager::Manager& mng);
+manager::Level choseLevel(manager::Manager mng);
 
 int main(int args, char* argv[]){
     manager::Manager mng("journal", manager::Level::UNIMPORTANT) ; // менеджер
@@ -34,8 +34,6 @@ int main(int args, char* argv[]){
 
     std::string message; // переменная для сохранения введённого сообщения
 
-
-    
     // бесконечно крутим цикл с выбором команд до ввода команды 0
     do{
         system("clear"); // очистка консоли
@@ -53,16 +51,20 @@ int main(int args, char* argv[]){
                 flag = true;
                 break;
             case 1:
+                if (writer.joinable()) {
+                    writer.join();
+                }
                 lvl = choseLevel(mng);
                 std::cout << "Введите сообщение: ";
-                std::cin >> message;
-                writer = std::thread([&mng, &write_success, &message, &lvl](){
-                    write_success = WriteMessage(mng,message,lvl);
+                std::getline(std::cin, message);
+                writer = std::thread([mng, message, lvl](){
+                    WriteMessage(mng,message,lvl);
                 });
 
                 break;
             case 2:
                 ShowMessages(mng);
+                std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
                 break;
             case 3:
                 {
@@ -70,20 +72,23 @@ int main(int args, char* argv[]){
                     ShowLevel(int(lvl));
                     std::cout << "\n";
                 }
+                std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
                 break;
             case 4:
                 SetLevel(mng);
                 break;
             default:
                 std::cout << "Такой команды не существует\n";
+                std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
         }
-        std::cout << "Нажмите любую клавишу...";
-        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        std::cout << "Нажмите любую клавишу...\n";
         std::cin.get();
     }while(!flag);
 
-    writer.join();
-    // тут дожидаться конца потока
+    if (writer.joinable()) {
+        writer.join();
+    }
+
 
 }
 
@@ -95,7 +100,7 @@ void ShowLevel(int i){
     }
 }
 
-void ShowMessages(manager::Manager& mng){
+void ShowMessages(manager::Manager mng){
     std::unique_lock<std::mutex> locker(mu); // не даём другим потокам читать или записывать в файл в это время, чтобы не было неопределённого результата
     std::vector<manager::Message> messages = mng.Read();
     locker.unlock(); // снимаем блокировку, так как больше c файлом не работаем и можно дальше туда что-то записывать
@@ -111,33 +116,46 @@ void SetLevel(manager::Manager& mng){
     mng.ChangeDefaultLevel(lvl);
 }
 
-manager::Level choseLevel(manager::Manager& mng){
-    manager::Level lvl;
+manager::Level choseLevel(manager::Manager mng){
+    manager::Level lvl; 
     int number;
+    std::string input;
     std::cout << "\nВведите номер нужной важности: " << std::endl;
     std::cout << "1. IMPORTANT" << std::endl;
     std::cout << "2. MEDIUM" << std::endl;
     std::cout << "3. UNIMPORTANT" << std::endl;
 
-    std::cout << "Введите номер: ";
+    std::cout << "Введите номер (Enter - по умолчанию): ";
     std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-    std::cin >> number;
-    if (number < 1 || number >3){
+    std::getline(std::cin, input);
+    if(input.empty()){
         lvl = mng.GetDefaultLevel();
     }else{
-        lvl = manager::Level(number);
+        number = std::stoi(input);
+        if (number < 1 || number >3){
+            lvl = mng.GetDefaultLevel();
+        }else{
+            lvl = manager::Level(number);
+        }
     }
+    
 
     return lvl;
 }
 
 
-bool WriteMessage(manager::Manager& mng, std::string message, manager::Level lvl){
+void WriteMessage(manager::Manager mng, std::string message, manager::Level lvl){
     std::string res_message = mng.ConvertRow(message, lvl);
-
+    // если возвращается пустая строка, т.е. добавляется задача с уровнем важности меньше чем заданный по умолчанию, то программа дальше не идет
+    if (res_message == ""){ 
+        std::cout << "Попытка добавить задачу, важность котороой меньше заданной по умолчанию\n";
+        return;
+    }
     std::unique_lock<std::mutex> locker(mu);
     bool flag = mng.WriteToJournal(res_message);
     locker.unlock();
 
-    return flag;
+    if (flag == false){
+        std::cout << "Попытка записи в файл не удалась";
+    }
 }
