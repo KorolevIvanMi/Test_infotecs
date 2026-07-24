@@ -14,17 +14,27 @@ void SetLevel(manager::Manager& mng);
 // выводит все сообщения из журнала
 void ShowMessages(manager::Manager& mng);
 // записывает сообщение в журнал
-void WriteMessage();
-// разбирает параметры переданные при старте приложения
+bool WriteMessage(manager::Manager& mng, std::string message, manager::Level lvl);
+// разбирает параметры, переданные при старте приложения
 void ParseArgs();
+
+// функция для выбора уровня важности
+manager::Level choseLevel(manager::Manager& mng);
 
 int main(int args, char* argv[]){
     manager::Manager mng("journal", manager::Level::UNIMPORTANT) ; // менеджер
     std::thread writer; //поток для отправки сообщений в журнал
-    
+
     bool flag = false; // флаг для окончаиня работы программы
+    bool write_success;
 
     int command = 0; //переменная для записи номера команды
+
+    manager::Level lvl; //переменая для сохранения выбора уровня важности
+
+    std::string message; // переменная для сохранения введённого сообщения
+
+
     
     // бесконечно крутим цикл с выбором команд до ввода команды 0
     do{
@@ -41,6 +51,15 @@ int main(int args, char* argv[]){
         switch (command) {
             case 0:
                 flag = true;
+                break;
+            case 1:
+                lvl = choseLevel(mng);
+                std::cout << "Введите сообщение: ";
+                std::cin >> message;
+                writer = std::thread([&mng, &write_success, &message, &lvl](){
+                    write_success = WriteMessage(mng,message,lvl);
+                });
+
                 break;
             case 2:
                 ShowMessages(mng);
@@ -62,6 +81,8 @@ int main(int args, char* argv[]){
         std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
         std::cin.get();
     }while(!flag);
+
+    writer.join();
     // тут дожидаться конца потока
 
 }
@@ -86,6 +107,11 @@ void ShowMessages(manager::Manager& mng){
 }
 
 void SetLevel(manager::Manager& mng){
+    manager::Level lvl = choseLevel(mng);
+    mng.ChangeDefaultLevel(lvl);
+}
+
+manager::Level choseLevel(manager::Manager& mng){
     manager::Level lvl;
     int number;
     std::cout << "\nВведите номер нужной важности: " << std::endl;
@@ -96,13 +122,22 @@ void SetLevel(manager::Manager& mng){
     std::cout << "Введите номер: ";
     std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
     std::cin >> number;
-
     if (number < 1 || number >3){
-        lvl = manager::Level::UNIMPORTANT;
+        lvl = mng.GetDefaultLevel();
     }else{
-        lvl = static_cast<manager::Level>(number);
+        lvl = manager::Level(number);
     }
-    
-    
-    mng.ChangeDefaultLevel(lvl);
+
+    return lvl;
+}
+
+
+bool WriteMessage(manager::Manager& mng, std::string message, manager::Level lvl){
+    std::string res_message = mng.ConvertRow(message, lvl);
+
+    std::unique_lock<std::mutex> locker(mu);
+    bool flag = mng.WriteToJournal(res_message);
+    locker.unlock();
+
+    return flag;
 }
