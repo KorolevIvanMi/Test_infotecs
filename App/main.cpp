@@ -1,20 +1,27 @@
 #include "../Manager/Manager.h"
 #include <iostream>
 #include <limits>
+#include <thread>
+#include <mutex>
+
+
+std::mutex mu; //мьютекс для блокирования потока
 
 // Выводит уровень важности задачи по его номеру
 void ShowLevel(int i);
-
+// устанавливает новый уровень важности задач по умолчанию
 void SetLevel();
-
-void ShowMessages();
-
+// выводит все сообщения из журнала
+void ShowMessages(manager::Manager mng);
+// записывает сообщение в журнал
 void WriteMessage();
-
+// разбирает параметры переданные при старте приложения
 void ParseArgs();
 
 int main(int args, char* argv[]){
-    manager::Manager mng("book", manager::Level::UNIMPORTANT) ; // менеджер
+    manager::Manager mng("journal", manager::Level::UNIMPORTANT) ; // менеджер
+    std::thread writer; //поток для отправки сообщений в журнал
+    
     bool flag = false; // флаг для окончаиня работы программы
 
     int command = 0; //переменная для записи номера команды
@@ -35,10 +42,14 @@ int main(int args, char* argv[]){
             case 0:
                 flag = true;
                 break;
+            case 2:
+                ShowMessages(mng);
+                break;
             case 3:
                 {
                     manager::Level lvl = mng.GetDefaultLevel();
                     ShowLevel(int(lvl));
+                    std::cout << "\n";
                 }
                 break;
             default:
@@ -54,8 +65,19 @@ int main(int args, char* argv[]){
 
 void ShowLevel(int i){
     switch (i){
-        case 1 : std::cout << "IMPORTANT\n"; break;
-        case 2 : std::cout << "MEDIUM\n"; break;
-        case 3 : std::cout << "UNIMPORTANT\n"; break;
+        case 1 : std::cout << "IMPORTANT"; break;
+        case 2 : std::cout << "MEDIUM"; break;
+        case 3 : std::cout << "UNIMPORTANT"; break;
+    }
+}
+
+void ShowMessages(manager::Manager mng){
+    std::unique_lock<std::mutex> locker(mu); // не даём другим потокам читать или записывать в файл в это время, чтобы не было неопределённого результата
+    std::vector<manager::Message> messages = mng.Read();
+    locker.unlock(); // снимаем блокировку, так как больше c файлом не работаем и можно дальше туда что-то записывать
+
+    for (auto iter = messages.begin(); iter != messages.end();++iter){
+        ShowLevel(std::stoi(iter->lvl));
+        std::cout << ":::" << iter->data << ":::" << iter->message <<std::endl; 
     }
 }

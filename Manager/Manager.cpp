@@ -105,7 +105,7 @@ manager::Message manager::Manager::parseData(std::string& line)const noexcept{
                 message+=chr;
         }
     }
-    res.lvl = lvl[1]; // так как первый символ будет пробелом
+    res.lvl = lvl; // так как первый символ будет пробелом
     res.data = data;
     res.message = message;
 
