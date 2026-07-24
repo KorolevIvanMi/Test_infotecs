@@ -10,9 +10,9 @@ std::mutex mu; //мьютекс для блокирования потока
 // Выводит уровень важности задачи по его номеру
 void ShowLevel(int i);
 // устанавливает новый уровень важности задач по умолчанию
-void SetLevel();
+void SetLevel(manager::Manager& mng);
 // выводит все сообщения из журнала
-void ShowMessages(manager::Manager mng);
+void ShowMessages(manager::Manager& mng);
 // записывает сообщение в журнал
 void WriteMessage();
 // разбирает параметры переданные при старте приложения
@@ -52,6 +52,9 @@ int main(int args, char* argv[]){
                     std::cout << "\n";
                 }
                 break;
+            case 4:
+                SetLevel(mng);
+                break;
             default:
                 std::cout << "Такой команды не существует\n";
         }
@@ -71,7 +74,7 @@ void ShowLevel(int i){
     }
 }
 
-void ShowMessages(manager::Manager mng){
+void ShowMessages(manager::Manager& mng){
     std::unique_lock<std::mutex> locker(mu); // не даём другим потокам читать или записывать в файл в это время, чтобы не было неопределённого результата
     std::vector<manager::Message> messages = mng.Read();
     locker.unlock(); // снимаем блокировку, так как больше c файлом не работаем и можно дальше туда что-то записывать
@@ -80,4 +83,26 @@ void ShowMessages(manager::Manager mng){
         ShowLevel(std::stoi(iter->lvl));
         std::cout << ":::" << iter->data << ":::" << iter->message <<std::endl; 
     }
+}
+
+void SetLevel(manager::Manager& mng){
+    manager::Level lvl;
+    int number;
+    std::cout << "\nВведите номер нужной важности: " << std::endl;
+    std::cout << "1. IMPORTANT" << std::endl;
+    std::cout << "2. MEDIUM" << std::endl;
+    std::cout << "3. UNIMPORTANT" << std::endl;
+
+    std::cout << "Введите номер: ";
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+    std::cin >> number;
+
+    if (number < 1 || number >3){
+        lvl = manager::Level::UNIMPORTANT;
+    }else{
+        lvl = static_cast<manager::Level>(number);
+    }
+    
+    
+    mng.ChangeDefaultLevel(lvl);
 }
