@@ -25,7 +25,7 @@ void ParseArgs(int args, char* argv[], std::string&, int&);
 // Очистка журнала
 void CleanJournal(std::string);
 // Вывод сообщений определённого уровня важности
-void ShowSortedMessages(int);
+void ShowSortedMessages(manager::Manager mng, int);
 
 // функция для выбора уровня важности
 manager::Level choseLevel(manager::Manager mng);
@@ -57,6 +57,7 @@ int main(int args, char* argv[]){
         std::cout << "3. Прочитать текущий уровень важности по умолчанию. \n";
         std::cout << "4. Изменить уровень важности сообщений по умолчанию. \n";
         std::cout << "5. Очистить журнал. \n";
+        std::cout << "6. Вывести сообщения с заданным уровнем важности. \n";
         std::cout << "0. Выйти. \n";
 
         std::cout << "Номер команды: ";
@@ -94,6 +95,10 @@ int main(int args, char* argv[]){
                 break;
             case 5:
                 CleanJournal(journal_name + ".txt");
+                break;
+            case 6:
+                lvl = choseLevel(mng);
+                ShowSortedMessages(mng, int(lvl));
                 break;
             default:
                 std::cout << "Такой команды не существует\n";
@@ -209,4 +214,18 @@ void ParseArgs(int args, char *argv[], std::string& journal_name, int& base_lvl)
 
 void CleanJournal(std::string file){
     std::filesystem::resize_file(file, 0);
+}
+
+void ShowSortedMessages(manager::Manager mng,  int int_lvl){
+    std::unique_lock<std::mutex> locker(mu); // не даём другим потокам читать или записывать в файл в это время, чтобы не было неопределённого результата
+    std::vector<manager::Message> messages = mng.Read();
+    locker.unlock(); // снимаем блокировку, так как больше c файлом не работаем и можно дальше туда что-то записывать
+
+    for (auto iter = messages.begin(); iter != messages.end();++iter){
+        if (int_lvl == std::stoi(iter->lvl)){
+            ShowLevel(std::stoi(iter->lvl));
+            std::cout << ":::" << iter->data << ":::" << iter->message <<std::endl; 
+        }
+        
+    }
 }
