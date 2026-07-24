@@ -1,5 +1,6 @@
 #include "../Manager/Manager.h"
 #include <cstring>
+#include <filesystem>
 #include <iostream>
 #include <limits>
 #include <stdexcept>
@@ -55,6 +56,7 @@ int main(int args, char* argv[]){
         std::cout << "2. Прочитать сообщения из журнала. \n";
         std::cout << "3. Прочитать текущий уровень важности по умолчанию. \n";
         std::cout << "4. Изменить уровень важности сообщений по умолчанию. \n";
+        std::cout << "5. Очистить журнал. \n";
         std::cout << "0. Выйти. \n";
 
         std::cout << "Номер команды: ";
@@ -89,6 +91,9 @@ int main(int args, char* argv[]){
                 break;
             case 4:
                 SetLevel(mng);
+                break;
+            case 5:
+                CleanJournal(journal_name + ".txt");
                 break;
             default:
                 std::cout << "Такой команды не существует\n";
@@ -200,4 +205,8 @@ void ParseArgs(int args, char *argv[], std::string& journal_name, int& base_lvl)
             throw std::runtime_error("Неверные входные параметры !! введите --help для просмотра информации");
         }
     }
+}
+
+void CleanJournal(std::string file){
+    std::filesystem::resize_file(file, 0);
 }
