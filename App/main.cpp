@@ -40,7 +40,6 @@ int main(int args, char* argv[]){
     std::thread writer; //поток для отправки сообщений в журнал
 
     bool flag = false; // флаг для окончаиня работы программы
-    bool write_success;
 
     int command = 0; //переменная для записи номера команды
 
