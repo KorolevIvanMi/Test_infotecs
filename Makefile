@@ -9,7 +9,7 @@ LIB_FLAGS = -fPIC -shared  -Wall -Wextra
 
 APP = test_app
 APP_DATA = App/main.cpp
-APP_RES = build/main
+APP_RES = build/app
 APP_FLAGS = -Wall -Wextra -I
 
 TEST = test_manager
