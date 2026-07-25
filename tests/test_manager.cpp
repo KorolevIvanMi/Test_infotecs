@@ -4,6 +4,7 @@
 #include <filesystem>
 #include <cassert>
 #include <functional>
+#include <vector>
 
 
 // макрос для тестов 
@@ -130,7 +131,39 @@ bool test_WriteToJournal_AppendMode() {
     TEST_ASSERT(line1 == msg1);
     TEST_ASSERT(line2 == msg2);
     
-    Cleanup(filename);
+    Cleanup(filename + ".txt");
+    return true;
+}
+
+bool test_Write_WithValidLevel(){
+    std::string filename = CreateTempFilename();
+    manager::Manager mng(filename, manager::Level::MEDIUM);
+
+    std::string value = "Test value";
+    bool result = mng.Write(value, manager::Level::MEDIUM);
+    TEST_ASSERT(result);
+
+    std::vector<manager::Message> messages = mng.Read();
+    TEST_ASSERT(messages.size() == 1);
+    TEST_ASSERT(messages[0].message == value);
+    TEST_ASSERT(messages[0].lvl == " 2");
+
+    Cleanup(filename+".txt");
+    return true;
+}
+
+bool test_Write_WithInvalidLevel(){
+    std::string filename = CreateTempFilename();
+    manager::Manager mng(filename, manager::Level::MEDIUM);
+
+    std::string value = "Test value";
+    bool result = mng.Write(value, manager::Level::UNIMPORTANT);
+    TEST_ASSERT(!result);
+
+    std::vector<manager::Message> messages = mng.Read();
+    TEST_ASSERT(messages.empty());
+
+    Cleanup(filename+".txt");
     return true;
 }
 
@@ -149,8 +182,8 @@ int main() {
         {"ConvertRow_LevelBelowDefault", test_ConvertRow_LevelBelowDefault},
         {"WriteToJournal_Success", test_WriteToJournal_Success},
         {"WriteToJournal_AppendMode", test_WriteToJournal_AppendMode},
-        // {"Write_WithValidLevel", test_Write_WithValidLevel},
-        // {"Write_WithInvalidLevel", test_Write_WithInvalidLevel},
+        {"Write_WithValidLevel", test_Write_WithValidLevel},
+        {"Write_WithInvalidLevel", test_Write_WithInvalidLevel},
         // {"Read_EmptyFile", test_Read_EmptyFile},
         // {"Read_MultipleMessages", test_Read_MultipleMessages},
         // {"ChangeDefaultLevel", test_ChangeDefaultLevel},
