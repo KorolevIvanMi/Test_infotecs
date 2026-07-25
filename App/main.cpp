@@ -213,7 +213,10 @@ void ParseArgs(int args, char *argv[], std::string& journal_name, int& base_lvl)
 }
 
 void CleanJournal(std::string file){
-    std::filesystem::resize_file(file, 0);
+    if (std::filesystem::exists(file)){
+        std::filesystem::resize_file(file, 0);
+    }
+    
 }
 
 void ShowSortedMessages(manager::Manager mng,  int int_lvl){
