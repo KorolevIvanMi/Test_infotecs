@@ -167,6 +167,106 @@ bool test_Write_WithInvalidLevel(){
     return true;
 }
 
+bool test_Read_EmptyFile() {
+    std::string filename = CreateTempFilename();
+    manager::Manager mng(filename, manager::Level::MEDIUM);
+    
+    auto messages = mng.Read();
+    TEST_ASSERT(messages.empty());
+    
+    Cleanup(filename + ".txt");
+    return true;
+}
+
+bool test_Read_MultipleMessages() {
+    std::string filename = CreateTempFilename();
+    manager::Manager mng(filename, manager::Level::UNIMPORTANT);
+    
+    // Записываем несколько сообщений
+    std::string value = "First";
+    std::string msg1 = mng.ConvertRow(value, manager::Level::UNIMPORTANT);
+    value = "Second";
+    std::string msg2 = mng.ConvertRow(value, manager::Level::MEDIUM);
+    value = "Third";
+    std::string msg3 = mng.ConvertRow(value, manager::Level::IMPORTANT);
+    
+    mng.WriteToJournal(msg1);
+    mng.WriteToJournal(msg2);
+    mng.WriteToJournal(msg3);
+    
+    auto messages = mng.Read();
+    TEST_ASSERT(messages.size() == 3);
+    TEST_ASSERT(messages[0].lvl == " 3");
+    TEST_ASSERT(messages[0].message == "First");
+    TEST_ASSERT(messages[1].lvl == " 2");
+    TEST_ASSERT(messages[1].message == "Second");
+    TEST_ASSERT(messages[2].lvl == " 1");
+    TEST_ASSERT(messages[2].message == "Third");
+    
+    Cleanup(filename + ".txt" );
+    return true;
+}
+
+bool test_ChangeDefaultLevel() {
+    manager::Manager mng("test", manager::Level::MEDIUM);
+    TEST_ASSERT(mng.GetDefaultLevel() == manager::Level::MEDIUM);
+    
+    mng.ChangeDefaultLevel(manager::Level::IMPORTANT);
+    TEST_ASSERT(mng.GetDefaultLevel() == manager::Level::IMPORTANT);
+    
+    mng.ChangeDefaultLevel(manager::Level::UNIMPORTANT);
+    TEST_ASSERT(mng.GetDefaultLevel() == manager::Level::UNIMPORTANT);
+    
+    return true;
+}
+
+bool test_GetDefaultLevel() {
+    manager::Manager mng1("test1", manager::Level::IMPORTANT);
+    TEST_ASSERT(mng1.GetDefaultLevel() == manager::Level::IMPORTANT);
+    
+    manager::Manager mng2("test2", manager::Level::UNIMPORTANT);
+    TEST_ASSERT(mng2.GetDefaultLevel() == manager::Level::UNIMPORTANT);
+    
+    manager::Manager mng3; // default конструктор
+    TEST_ASSERT(mng3.GetDefaultLevel() == manager::Level::UNIMPORTANT);
+    
+    return true;
+}
+
+bool test_EndToEnd() {
+    std::string filename = CreateTempFilename();
+    manager::Manager mng(filename, manager::Level::MEDIUM);
+    
+    // 1. Записываем сообщение
+    std::string msg = "Integration test";
+    bool written = mng.Write(msg, manager::Level::IMPORTANT);
+    TEST_ASSERT(written == true);
+    
+    // 2. Читаем сообщение
+    auto messages = mng.Read();
+    TEST_ASSERT(messages.size() == 1);
+    TEST_ASSERT(messages[0].message == "Integration test");
+    TEST_ASSERT(messages[0].lvl == " 1");
+    
+    // 3. Пытаемся записать с низким уровнем
+    std::string value = "Should fail";
+    written = mng.Write(value, manager::Level::UNIMPORTANT);
+    TEST_ASSERT(written == false);
+    
+    // 4. Меняем уровень и пробуем снова
+    mng.ChangeDefaultLevel(manager::Level::UNIMPORTANT);
+    value = "Should work now";
+    written = mng.Write(value, manager::Level::UNIMPORTANT);
+    TEST_ASSERT(written == true);
+    
+    // 5. Проверяем, что оба сообщения на месте
+    messages = mng.Read();
+    TEST_ASSERT(messages.size() == 2);
+    
+    Cleanup(filename + ".txt");
+    return true;
+}
+
 struct Test {
     std::string name;
     std::function<bool()> func;
@@ -184,11 +284,11 @@ int main() {
         {"WriteToJournal_AppendMode", test_WriteToJournal_AppendMode},
         {"Write_WithValidLevel", test_Write_WithValidLevel},
         {"Write_WithInvalidLevel", test_Write_WithInvalidLevel},
-        // {"Read_EmptyFile", test_Read_EmptyFile},
-        // {"Read_MultipleMessages", test_Read_MultipleMessages},
-        // {"ChangeDefaultLevel", test_ChangeDefaultLevel},
-        // {"GetDefaultLevel", test_GetDefaultLevel},
-        // {"EndToEnd", test_EndToEnd},
+        {"Read_EmptyFile", test_Read_EmptyFile},
+        {"Read_MultipleMessages", test_Read_MultipleMessages},
+        {"ChangeDefaultLevel", test_ChangeDefaultLevel},
+        {"GetDefaultLevel", test_GetDefaultLevel},
+        {"EndToEnd", test_EndToEnd},
     };
     
     int passed = 0;
